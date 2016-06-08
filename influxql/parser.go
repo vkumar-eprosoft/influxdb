@@ -32,6 +32,7 @@ func NewParser(r io.Reader) *Parser {
 	return &Parser{s: newBufScanner(r)}
 }
 
+// SetParams sets the parameters that will be used for any bound parameter substitutions.
 func (p *Parser) SetParams(params map[string]interface{}) {
 	p.params = params
 }

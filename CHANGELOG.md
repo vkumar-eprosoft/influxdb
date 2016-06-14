@@ -73,6 +73,7 @@
 - [#6835](https://github.com/influxdata/influxdb/pull/6835): Include sysvinit-tools as an rpm dependency.
 - [#6834](https://github.com/influxdata/influxdb/pull/6834): Add port to all graphite log output to help with debugging multiple endpoints
 - [#6850](https://github.com/influxdata/influxdb/pull/6850): Modify the max nanosecond time to be one nanosecond less.
+- [#6824](https://github.com/influxdata/influxdb/issues/6824): Remove systemd output redirection.
 
 ## v0.13.0 [2016-05-12]
 

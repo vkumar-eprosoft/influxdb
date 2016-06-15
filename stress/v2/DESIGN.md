@@ -39,7 +39,7 @@ type Statement interface {
 
 ### `Statement` -> `Storefront`
 
-`Statement`s send `Packages` (queries or writes to the target database) or `Directives` (for changing test state) through the `StoreFront` to the `ponyExpress` where they are processed.
+`Statement`s send `Package`s (queries or writes to the target database) or `Directives` (for changing test state) through the `StoreFront` to the `ponyExpress` where they are processed.
 ```go
 // v2/ponyExpress/package.go
 
@@ -54,7 +54,7 @@ type Package struct {
 
 // v2/ponyExpress/directive.go
 
-// Property is test state to change
+// Property is test state variable to change
 // Value is the new value
 type Directive struct {
 	Property string

@@ -39,7 +39,6 @@ func startPonyExpress(packageCh <-chan Package, directiveCh <-chan Directive, re
 	}
 	// start listening for writes and queries
 	go c.listen()
-
 	// start listening for state changes
 	go c.directiveListen()
 }
@@ -103,30 +102,22 @@ func newTestPonyExpress(url string) (*ponyExpress, chan Directive, chan Package)
 	return pe, dirChan, pkgChan
 }
 
-// client starts listening for Packages on the main channel
+// ponyExpress starts listening for Packages on the main channel
 func (pe *ponyExpress) listen() {
-
 	defer pe.Wait()
-
-	// Keep track of number of concurrent readers and writers seperately
 	pe.wc = NewConcurrencyLimiter(pe.wconc)
 	pe.rc = NewConcurrencyLimiter(pe.qconc)
-
-	// Manage overall number of goroutines and keep at 2 x (wconc + qconc)
 	l := NewConcurrencyLimiter((pe.wconc + pe.qconc) * 2)
-
-	// Concume incoming packages
 	counter := 0
 	for p := range pe.packageChan {
-		serv := counter % len(pe.addresses)
 		l.Increment()
 		go func(p Package) {
 			defer l.Decrement()
 			switch p.T {
 			case Write:
-				pe.spinOffWritePackage(p, serv)
+				pe.spinOffWritePackage(p, (counter % len(pe.addresses)))
 			case Query:
-				pe.spinOffQueryPackage(p, serv)
+				pe.spinOffQueryPackage(p, (counter % len(pe.addresses)))
 			}
 		}(p)
 		counter++
@@ -139,59 +130,45 @@ func (pe *ponyExpress) directiveListen() {
 	for d := range pe.directiveChan {
 		pe.Lock()
 		switch d.Property {
-
 		// addresses is a []string of target InfluxDB instance(s) for the test
 		// comes in as a "|" seperated array of addresses
 		case "addresses":
 			addr := strings.Split(d.Value, "|")
 			pe.addresses = addr
-
 		// percison is the write precision for InfluxDB
 		case "precision":
 			pe.precision = d.Value
-
 		// writeinterval is an optional delay between batches
 		case "writeinterval":
 			pe.wdelay = d.Value
-
 		// queryinterval is an optional delay between the batches
 		case "queryinterval":
 			pe.qdelay = d.Value
-
 		// database is the InfluxDB database to target for both writes and queries
 		case "database":
 			pe.database = d.Value
-
 		// username for the target database
 		case "username":
 			pe.username = d.Value
-
 		// username for the target database
 		case "password":
 			pe.password = d.Value
-
-		// use https if the there is a value for ssl
+		// use https if sent true
 		case "ssl":
 			if d.Value == "true" {
 				pe.ssl = true
 			}
-
-			// concurrency is the number concurrent writers to the database
+		// concurrency is the number concurrent writers to the database
 		case "writeconcurrency":
 			conc := parseInt(d.Value)
 			pe.wconc = conc
-			// Reset the ConcurrencyLimiter
 			pe.wc.NewMax(conc)
-
-			// concurrentqueries is the number of concurrent queries to run against the database
+		// concurrentqueries is the number of concurrent queriers database
 		case "queryconcurrency":
 			conc := parseInt(d.Value)
 			pe.qconc = conc
-			// Reset the ConcurrencyLimiter
 			pe.rc.NewMax(conc)
 		}
-
-		// Decrement the tracker
 		d.Tracer.Done()
 		pe.Unlock()
 	}

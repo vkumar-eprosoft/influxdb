@@ -11,15 +11,16 @@ import (
 // NewStoreFront creates the backend for the stress test
 func NewStoreFront() *StoreFront {
 
-	// Make the Package and Directive chans
 	packageCh := make(chan Package, 0)
 	directiveCh := make(chan Directive, 0)
-
-	// Make the Response chan
 	responseCh := make(chan Response, 0)
 
+	clnt, _ := influx.NewHTTPClient(influx.HTTPConfig{
+		Addr: fmt.Sprintf("http://%v/", "localhost:8086"),
+	})
+
 	s := &StoreFront{
-		TestName:  "DefaultTestName",
+		TestDB:    "_stressTest",
 		Precision: "s",
 		StartDate: "2016-01-02",
 		BatchSize: 5000,
@@ -27,15 +28,11 @@ func NewStoreFront() *StoreFront {
 		packageChan:   packageCh,
 		directiveChan: directiveCh,
 
-		ResultsChan: responseCh,
-		communes:    make(map[string]*commune),
-		TestID:      randStr(10),
+		ResultsClient: clnt,
+		ResultsChan:   responseCh,
+		communes:      make(map[string]*commune),
+		TestID:        randStr(10),
 	}
-
-	// Set the results instance to localhost:8086 by default
-	s.SetResultsClient(influx.HTTPConfig{
-		Addr: fmt.Sprintf("http://%v/", "localhost:8086"),
-	})
 
 	// Start the client service
 	startPonyExpress(packageCh, directiveCh, responseCh, s.TestID)
@@ -53,7 +50,7 @@ func NewTestStoreFront() (*StoreFront, chan Package, chan Directive) {
 	directiveCh := make(chan Directive, 0)
 
 	s := &StoreFront{
-		TestName:  "DefaultTestName",
+		TestDB:    "_stressTest",
 		Precision: "s",
 		StartDate: "2016-01-02",
 		BatchSize: 5000,
@@ -68,10 +65,10 @@ func NewTestStoreFront() (*StoreFront, chan Package, chan Directive) {
 	return s, packageCh, directiveCh
 }
 
-// The StoreFront is the Statement facing API that consume Statement output and coordinates the test results
+// The StoreFront is the Statement facing API that consumes Statement output and coordinates the test results
 type StoreFront struct {
-	TestID   string
-	TestName string
+	TestID string
+	TestDB string
 
 	Precision string
 	StartDate string
@@ -100,110 +97,76 @@ func (sf *StoreFront) SendDirective(d Directive) {
 
 // Starts a go routine that listens for Results
 func (sf *StoreFront) resultsListen() {
-
-	// Make sure databases for results are created
-	sf.createDatabase(fmt.Sprintf("_%v", sf.TestName))
-	sf.createDatabase(sf.TestName)
-
-	// Listen for Responses
+	sf.createDatabase(sf.TestDB)
 	go func() {
-
-		// Prepare a BatchPointsConfig
-		bpconf := influx.BatchPointsConfig{
-			Database:  fmt.Sprintf("_%v", sf.TestName),
-			Precision: "ns",
-		}
-
-		// Prepare the first batch of points
-		bp, _ := influx.NewBatchPoints(bpconf)
-
-		// TODO: Panics on resp.Tracer.Done() if there are too many 500s in a row
-		// Loop over ResultsChan
+		bp := sf.newResultsPointBatch()
 		for resp := range sf.ResultsChan {
 			switch resp.Point.Name() {
-			// If the done point comes down the channel write the results
 			case "done":
 				sf.ResultsClient.Write(bp)
-				// Decrement the tracer
 				resp.Tracer.Done()
-			// By default fall back to the batcher
 			default:
 				// Add the StoreFront tags
 				pt := resp.AddTags(sf.tags())
 				// Add the point to the batch
-				bp = sf.batcher(pt, bp, bpconf)
-				// Decrement the tracer
+				bp = sf.batcher(pt, bp)
 				resp.Tracer.Done()
 			}
 		}
-
 	}()
 }
 
-// Batches incoming Result.Point and sends them if the batch reaches 5k in sizes
-func (sf *StoreFront) batcher(pt *influx.Point, bp influx.BatchPoints, bpconf influx.BatchPointsConfig) influx.BatchPoints {
-	// If fewer than 5k add point and return
-	if len(bp.Points()) <= 5000 {
-		bp.AddPoint(pt)
-	} else {
-		// Otherwise send the batch
-		err := sf.ResultsClient.Write(bp)
-
-		// Check error
-		if err != nil {
-			log.Fatalf("Error writing performance stats\n  error: %v\n", err)
-		}
-
-		// Reset the batch of points
-		bp, _ = influx.NewBatchPoints(bpconf)
-	}
+// Creates a new batch of points for the results
+func (sf *StoreFront) newResultsPointBatch() influx.BatchPoints {
+	bp, _ := influx.NewBatchPoints(influx.BatchPointsConfig{
+		Database:  sf.TestDB,
+		Precision: "ns",
+	})
 	return bp
 }
 
-// SetResultsClient is the utility for reseting the address of the ResultsClient
-func (sf *StoreFront) SetResultsClient(conf influx.HTTPConfig) {
-	clnt, err := influx.NewHTTPClient(conf)
-	if err != nil {
-		log.Fatalf("Error resetting results clien\n  error: %v\n", err)
+// Batches incoming Result.Point and sends them if the batch reaches 5k in size
+func (sf *StoreFront) batcher(pt *influx.Point, bp influx.BatchPoints) influx.BatchPoints {
+	if len(bp.Points()) <= 5000 {
+		bp.AddPoint(pt)
+	} else {
+		err := sf.ResultsClient.Write(bp)
+		if err != nil {
+			log.Fatalf("Error writing performance stats\n  error: %v\n", err)
+		}
+		bp = sf.newResultsPointBatch()
 	}
-	sf.ResultsClient = clnt
+	return bp
 }
 
 // Convinence database creation function
 func (sf *StoreFront) createDatabase(db string) {
 	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v", db)
-	sf.ResultsClient.Query(influx.Query{Command: query})
+	res, err := sf.ResultsClient.Query(influx.Query{Command: query})
+	if err != nil {
+		log.Fatalf("error: no running influx server at localhost:8086")
+		if res.Error() != nil {
+			log.Fatalf("error: no running influx server at localhost:8086")
+		}
+	}
 }
 
 // GetStatementResults is a convinence function for fetching all results given a StatementID
 func (sf *StoreFront) GetStatementResults(sID, t string) (res []influx.Result) {
-	// Make the template string
 	qryStr := fmt.Sprintf(`SELECT * FROM "%v" WHERE statement_id = '%v'`, t, sID)
-	// Make the query and return the results
 	return sf.queryTestResults(qryStr)
 }
 
 //  Runs given qry on the test results database and returns the results or nil in case of error
 func (sf *StoreFront) queryTestResults(qry string) (res []influx.Result) {
-	q := influx.Query{
-		Command:  qry,
-		Database: fmt.Sprintf("_%v", sf.TestName),
-	}
-
-	response, err := sf.ResultsClient.Query(q)
-
+	response, err := sf.ResultsClient.Query(influx.Query{Command: qry, Database: sf.TestDB})
 	if err == nil {
 		if response.Error() != nil {
 			log.Fatalf("Error sending results query\n  error: %v\n", response.Error())
 		}
 	}
-
-	res = response.Results
-
-	// If there are no results this indicates some kind of error
-	if res[0].Series == nil {
+	if response.Results[0].Series == nil {
 		return nil
 	}
-
-	return res
+	return response.Results
 }

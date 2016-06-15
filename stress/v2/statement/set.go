@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	influx "github.com/influxdata/influxdb/client/v2"
 	"github.com/influxdata/influxdb/stress/v2/ponyExpress"
 )
 
@@ -55,21 +54,6 @@ func (i *SetStatement) Run(s *ponyExpress.StoreFront) {
 	case "batchsize":
 		s.Lock()
 		s.BatchSize = parseInt(d.Value)
-		s.Unlock()
-
-	// Lives on StoreFront
-	// Reset the ResultsClient to have a new address
-	case "resultsaddress":
-		s.Lock()
-		s.SetResultsClient(influx.HTTPConfig{Addr: fmt.Sprintf("http://%v/", d.Value)})
-		s.Unlock()
-
-	// TODO: Make TestName actually change the reporting DB
-	// Lives on StoreFront
-	// Set the TestName that controls reporting DB
-	case "testname":
-		s.Lock()
-		s.TestName = d.Value
 		s.Unlock()
 
 	// All other variables live on ponyExpress

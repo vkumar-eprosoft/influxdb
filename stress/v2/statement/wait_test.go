@@ -4,7 +4,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/influxdata/influxdb/stress/v2/ponyExpress"
+	"github.com/influxdata/influxdb/stress/v2/stressClient"
 )
 
 func TestWaitSetID(t *testing.T) {

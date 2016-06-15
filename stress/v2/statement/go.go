@@ -3,7 +3,7 @@ package statement
 import (
 	"fmt"
 
-	"github.com/influxdata/influxdb/stress/v2/ponyExpress"
+	"github.com/influxdata/influxdb/stress/v2/stressClient"
 )
 
 // GoStatement is a Statement Implementation to allow other statements to be run concurrently

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/influxdata/influxdb/stress/v2/ponyExpress"
+	"github.com/influxdata/influxdb/stress/v2/stressClient"
 )
 
 // WaitStatement is a Statement Implementation to prevent the test from returning to early when running GoStatements

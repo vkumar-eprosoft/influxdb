@@ -6,7 +6,7 @@ import (
 	"time"
 
 	influx "github.com/influxdata/influxdb/client/v2"
-	"github.com/influxdata/influxdb/stress/v2/ponyExpress"
+	"github.com/influxdata/influxdb/stress/v2/stressClient"
 	"github.com/influxdata/influxdb/stress/v2/stressql"
 )
 

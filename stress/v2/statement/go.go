@@ -19,7 +19,7 @@ func (i *GoStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *GoStatement) Run(s *ponyExpress.StoreFront) {
+func (i *GoStatement) Run(s *stressClient.StoreFront) {
 	s.Add(1)
 	go func() {
 		i.Statement.Run(s)
@@ -28,6 +28,6 @@ func (i *GoStatement) Run(s *ponyExpress.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *GoStatement) Report(s *ponyExpress.StoreFront) string {
+func (i *GoStatement) Report(s *stressClient.StoreFront) string {
 	return fmt.Sprintf("Go %v", i.Statement.Report(s))
 }

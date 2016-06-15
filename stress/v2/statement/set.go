@@ -14,7 +14,7 @@ type SetStatement struct {
 
 	StatementID string
 
-	Tracer *ponyExpress.Tracer
+	Tracer *stressClient.Tracer
 }
 
 // SetID statisfies the Statement Interface
@@ -23,17 +23,17 @@ func (i *SetStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *SetStatement) Run(s *ponyExpress.StoreFront) {
+func (i *SetStatement) Run(s *stressClient.StoreFront) {
 
 	// Set the Tracer
-	i.Tracer = ponyExpress.NewTracer(make(map[string]string))
+	i.Tracer = stressClient.NewTracer(make(map[string]string))
 
 	// Create a new Directive
-	d := ponyExpress.NewDirective(strings.ToLower(i.Var), strings.ToLower(i.Value), i.Tracer)
+	d := stressClient.NewDirective(strings.ToLower(i.Var), strings.ToLower(i.Value), i.Tracer)
 
 	switch d.Property {
 
-	// Needs to be set on both StoreFront and ponyExpress
+	// Needs to be set on both StoreFront and stressClient
 	// Set the write percison for points generated
 	case "precision":
 		s.Precision = d.Value
@@ -56,7 +56,7 @@ func (i *SetStatement) Run(s *ponyExpress.StoreFront) {
 		s.BatchSize = parseInt(d.Value)
 		s.Unlock()
 
-	// All other variables live on ponyExpress
+	// All other variables live on stressClient
 	default:
 		// Increment the tracer
 		i.Tracer.Add(1)
@@ -66,6 +66,6 @@ func (i *SetStatement) Run(s *ponyExpress.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *SetStatement) Report(s *ponyExpress.StoreFront) string {
+func (i *SetStatement) Report(s *stressClient.StoreFront) string {
 	return fmt.Sprintf("SET %v = '%v'", i.Var, i.Value)
 }

@@ -10,8 +10,8 @@ import (
 // Statement is the common interface to shape the testing environment and prepare database requests
 // The parser turns the 'statements' in the config file into Statements
 type Statement interface {
-	Run(s *ponyExpress.StoreFront)
-	Report(s *ponyExpress.StoreFront) string
+	Run(s *stressClient.StoreFront)
+	Report(s *stressClient.StoreFront) string
 	SetID(s string)
 }
 

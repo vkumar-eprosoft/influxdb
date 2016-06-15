@@ -22,7 +22,7 @@ type QueryStatement struct {
 	Count int
 
 	// Tracer for tracking returns
-	Tracer *ponyExpress.Tracer
+	Tracer *stressClient.Tracer
 
 	// track time for all queries
 	runtime time.Duration
@@ -40,10 +40,10 @@ func (i *QueryStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *QueryStatement) Run(s *ponyExpress.StoreFront) {
+func (i *QueryStatement) Run(s *stressClient.StoreFront) {
 
 	// Set the tracer
-	i.Tracer = ponyExpress.NewTracer(i.tags())
+	i.Tracer = stressClient.NewTracer(i.tags())
 
 	vals := make(map[string]interface{})
 
@@ -58,7 +58,7 @@ func (i *QueryStatement) Run(s *ponyExpress.StoreFront) {
 			b := []byte(i.TemplateString)
 
 			// Make the package
-			p := ponyExpress.NewPackage(ponyExpress.Query, b, i.StatementID, i.Tracer)
+			p := stressClient.NewPackage(stressClient.Query, b, i.StatementID, i.Tracer)
 
 			// Increment the tracer
 			i.Tracer.Add(1)
@@ -82,7 +82,7 @@ func (i *QueryStatement) Run(s *ponyExpress.StoreFront) {
 			b := []byte(fmt.Sprintf(i.TemplateString, setArgs(vals, i.Args)...))
 
 			// Make the package
-			p := ponyExpress.NewPackage(ponyExpress.Query, b, i.StatementID, i.Tracer)
+			p := stressClient.NewPackage(stressClient.Query, b, i.StatementID, i.Tracer)
 
 			// Increment the tracer
 			i.Tracer.Add(1)
@@ -101,7 +101,7 @@ func (i *QueryStatement) Run(s *ponyExpress.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *QueryStatement) Report(s *ponyExpress.StoreFront) string {
+func (i *QueryStatement) Report(s *stressClient.StoreFront) string {
 	// Pull data via StoreFront client
 	allData := s.GetStatementResults(i.StatementID, "query")
 

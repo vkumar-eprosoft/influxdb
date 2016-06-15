@@ -27,7 +27,7 @@ type InsertStatement struct {
 	TagCount int
 
 	// The Tracer prevents InsertStatement.Run() from returning early
-	Tracer *ponyExpress.Tracer
+	Tracer *stressClient.Tracer
 
 	// Timestamp is #points to write and percision
 	Timestamp *Timestamp
@@ -65,7 +65,7 @@ func (i *InsertStatement) SetID(s string) {
 }
 
 // SetVars sets up the environment for InsertStatement to call it's Run function
-func (i *InsertStatement) SetVars(s *ponyExpress.StoreFront) chan<- string {
+func (i *InsertStatement) SetVars(s *stressClient.StoreFront) chan<- string {
 	// Set the #series at 1 to start
 	i.series = 1
 
@@ -86,13 +86,13 @@ func (i *InsertStatement) SetVars(s *ponyExpress.StoreFront) chan<- string {
 	s.Unlock()
 
 	// Set the tracer
-	i.Tracer = ponyExpress.NewTracer(i.tags())
+	i.Tracer = stressClient.NewTracer(i.tags())
 
 	return comCh
 }
 
 // Run statisfies the Statement Interface
-func (i *InsertStatement) Run(s *ponyExpress.StoreFront) {
+func (i *InsertStatement) Run(s *stressClient.StoreFront) {
 
 	// Set variables on the InsertStatement and make the comCh
 	comCh := i.SetVars(s)
@@ -126,7 +126,7 @@ func (i *InsertStatement) Run(s *ponyExpress.StoreFront) {
 			b = b[0 : len(b)-1]
 
 			// Create the package
-			p := ponyExpress.NewPackage(ponyExpress.Write, b, i.StatementID, i.Tracer)
+			p := stressClient.NewPackage(stressClient.Write, b, i.StatementID, i.Tracer)
 
 			// Use Tracer to wait for all operations to finish
 			i.Tracer.Add(1)
@@ -159,7 +159,7 @@ func (i *InsertStatement) Run(s *ponyExpress.StoreFront) {
 		b = b[0 : len(b)-1]
 
 		// Create the package
-		p := ponyExpress.NewPackage(ponyExpress.Write, b, i.StatementID, i.Tracer)
+		p := stressClient.NewPackage(stressClient.Write, b, i.StatementID, i.Tracer)
 
 		// Use Tracer to wait for all operations to finish
 		i.Tracer.Add(1)
@@ -176,7 +176,7 @@ func (i *InsertStatement) Run(s *ponyExpress.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *InsertStatement) Report(s *ponyExpress.StoreFront) string {
+func (i *InsertStatement) Report(s *stressClient.StoreFront) string {
 	// Pull data via StoreFront client
 	allData := s.GetStatementResults(i.StatementID, "write")
 

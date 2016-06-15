@@ -21,12 +21,12 @@ func (i *ExecStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *ExecStatement) Run(s *ponyExpress.StoreFront) {
+func (i *ExecStatement) Run(s *stressClient.StoreFront) {
 	runtime := time.Now()
 	i.runtime = time.Since(runtime)
 }
 
 // Report statisfies the Statement Interface
-func (i *ExecStatement) Report(s *ponyExpress.StoreFront) string {
+func (i *ExecStatement) Report(s *stressClient.StoreFront) string {
 	return ""
 }

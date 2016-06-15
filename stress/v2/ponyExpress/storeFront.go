@@ -1,4 +1,4 @@
-package ponyExpress
+package stressClient
 
 import (
 	"fmt"
@@ -35,7 +35,7 @@ func NewStoreFront() *StoreFront {
 	}
 
 	// Start the client service
-	startPonyExpress(packageCh, directiveCh, responseCh, s.TestID)
+	startStressClient(packageCh, directiveCh, responseCh, s.TestID)
 
 	// Listen for Results coming in
 	s.resultsListen()

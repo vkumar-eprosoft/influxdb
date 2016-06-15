@@ -38,16 +38,16 @@ func (c *commune) point(precision string) models.Point {
 }
 
 // SetCommune creates a new commune on the StoreFront
-func (sf *StoreFront) SetCommune(name string) chan<- string {
+func (st *StressTest) SetCommune(name string) chan<- string {
 	com := newCommune(10)
-	sf.communes[name] = com
+	st.communes[name] = com
 
 	return com.ch
 }
 
 // GetPoint is called by a QueryStatement and retrieves a point sent by the associated InsertStatement
-func (sf *StoreFront) GetPoint(name, precision string) models.Point {
-	p := sf.communes[name].point(precision)
+func (st *StressTest) GetPoint(name, precision string) models.Point {
+	p := st.communes[name].point(precision)
 
 	// Function needs to return a point. Panic if it doesn't
 	if p == nil {

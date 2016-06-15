@@ -20,13 +20,13 @@ func (w *WaitStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (w *WaitStatement) Run(s *stressClient.StoreFront) {
+func (w *WaitStatement) Run(s *stressClient.StressTest) {
 	runtime := time.Now()
 	s.Wait()
 	w.runtime = time.Since(runtime)
 }
 
 // Report statisfies the Statement Interface
-func (w *WaitStatement) Report(s *stressClient.StoreFront) string {
+func (w *WaitStatement) Report(s *stressClient.StressTest) string {
 	return fmt.Sprintf("WAIT -> %v", w.runtime)
 }

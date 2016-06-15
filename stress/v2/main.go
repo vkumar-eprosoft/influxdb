@@ -14,7 +14,7 @@ import (
 func RunStress(file string) {
 
 	// Spin up the Client
-	s := stressClient.NewStoreFront()
+	s := stressClient.NewStressTest()
 
 	// Parse the file into Statements
 	stmts, err := stressql.ParseStatements(file)

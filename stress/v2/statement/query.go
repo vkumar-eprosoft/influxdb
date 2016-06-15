@@ -40,7 +40,7 @@ func (i *QueryStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *QueryStatement) Run(s *stressClient.StoreFront) {
+func (i *QueryStatement) Run(s *stressClient.StressTest) {
 
 	// Set the tracer
 	i.Tracer = stressClient.NewTracer(i.tags())
@@ -101,8 +101,8 @@ func (i *QueryStatement) Run(s *stressClient.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *QueryStatement) Report(s *stressClient.StoreFront) string {
-	// Pull data via StoreFront client
+func (i *QueryStatement) Report(s *stressClient.StressTest) string {
+	// Pull data via StressTest client
 	allData := s.GetStatementResults(i.StatementID, "query")
 
 	if len(allData) == 0 || allData[0].Series == nil {

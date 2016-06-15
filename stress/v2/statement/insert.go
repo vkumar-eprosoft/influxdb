@@ -65,7 +65,7 @@ func (i *InsertStatement) SetID(s string) {
 }
 
 // SetVars sets up the environment for InsertStatement to call it's Run function
-func (i *InsertStatement) SetVars(s *stressClient.StoreFront) chan<- string {
+func (i *InsertStatement) SetVars(s *stressClient.StressTest) chan<- string {
 	// Set the #series at 1 to start
 	i.series = 1
 
@@ -80,7 +80,7 @@ func (i *InsertStatement) SetVars(s *stressClient.StoreFront) chan<- string {
 	// Set the time function, keeps track of 'time' of the points being created
 	i.time = i.Timestamp.Time(s.StartDate, i.series, s.Precision)
 
-	// Set a commune on the StoreFront
+	// Set a commune on the StressTest
 	s.Lock()
 	comCh := s.SetCommune(i.Name)
 	s.Unlock()
@@ -92,7 +92,7 @@ func (i *InsertStatement) SetVars(s *stressClient.StoreFront) chan<- string {
 }
 
 // Run statisfies the Statement Interface
-func (i *InsertStatement) Run(s *stressClient.StoreFront) {
+func (i *InsertStatement) Run(s *stressClient.StressTest) {
 
 	// Set variables on the InsertStatement and make the comCh
 	comCh := i.SetVars(s)
@@ -176,8 +176,8 @@ func (i *InsertStatement) Run(s *stressClient.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *InsertStatement) Report(s *stressClient.StoreFront) string {
-	// Pull data via StoreFront client
+func (i *InsertStatement) Report(s *stressClient.StressTest) string {
+	// Pull data via StressTest client
 	allData := s.GetStatementResults(i.StatementID, "write")
 
 	if allData == nil || allData[0].Series == nil {

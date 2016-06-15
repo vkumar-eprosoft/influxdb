@@ -25,7 +25,7 @@ func (i *InfluxqlStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *InfluxqlStatement) Run(s *stressClient.StoreFront) {
+func (i *InfluxqlStatement) Run(s *stressClient.StressTest) {
 
 	// Set the tracer
 	i.Tracer = stressClient.NewTracer(i.tags())
@@ -45,7 +45,7 @@ func (i *InfluxqlStatement) Run(s *stressClient.StoreFront) {
 
 // Report statisfies the Statement Interface
 // No test coverage, fix
-func (i *InfluxqlStatement) Report(s *stressClient.StoreFront) (out string) {
+func (i *InfluxqlStatement) Report(s *stressClient.StressTest) (out string) {
 	allData := s.GetStatementResults(i.StatementID, "query")
 
 	iqlr := &influxQlReport{

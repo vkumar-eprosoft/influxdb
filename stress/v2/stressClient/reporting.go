@@ -26,11 +26,11 @@ func (sc *stressClient) tags(statementID string) map[string]string {
 	return tags
 }
 
-// These are the tags that the StoreFront adds to any response points
-func (sf *StoreFront) tags() map[string]string {
+// These are the tags that the StressTest adds to any response points
+func (st *StressTest) tags() map[string]string {
 	tags := map[string]string{
-		"precision":  sf.Precision,
-		"batch_size": fmtInt(sf.BatchSize),
+		"precision":  st.Precision,
+		"batch_size": fmtInt(st.BatchSize),
 	}
 	return tags
 }

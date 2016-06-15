@@ -23,42 +23,30 @@ func (i *SetStatement) SetID(s string) {
 }
 
 // Run statisfies the Statement Interface
-func (i *SetStatement) Run(s *stressClient.StoreFront) {
-
-	// Set the Tracer
+func (i *SetStatement) Run(s *stressClient.StressTest) {
 	i.Tracer = stressClient.NewTracer(make(map[string]string))
-
-	// Create a new Directive
 	d := stressClient.NewDirective(strings.ToLower(i.Var), strings.ToLower(i.Value), i.Tracer)
-
 	switch d.Property {
-
-	// Needs to be set on both StoreFront and stressClient
+	// Needs to be set on both StressTest and stressClient
 	// Set the write percison for points generated
 	case "precision":
 		s.Precision = d.Value
-
-		// Increment the tracer
 		i.Tracer.Add(1)
 		s.SendDirective(d)
-
-	// Lives on StoreFront
+	// Lives on StressTest
 	// Set the date for the first point entered into the database
 	case "startdate":
 		s.Lock()
 		s.StartDate = d.Value
 		s.Unlock()
-
-	// Lives on StoreFront
+	// Lives on StressTest
 	// Set the BatchSize for writes
 	case "batchsize":
 		s.Lock()
 		s.BatchSize = parseInt(d.Value)
 		s.Unlock()
-
 	// All other variables live on stressClient
 	default:
-		// Increment the tracer
 		i.Tracer.Add(1)
 		s.SendDirective(d)
 	}
@@ -66,6 +54,6 @@ func (i *SetStatement) Run(s *stressClient.StoreFront) {
 }
 
 // Report statisfies the Statement Interface
-func (i *SetStatement) Report(s *stressClient.StoreFront) string {
+func (i *SetStatement) Report(s *stressClient.StressTest) string {
 	return fmt.Sprintf("SET %v = '%v'", i.Var, i.Value)
 }

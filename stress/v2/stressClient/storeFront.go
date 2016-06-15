@@ -8,8 +8,8 @@ import (
 	influx "github.com/influxdata/influxdb/client/v2"
 )
 
-// NewStoreFront creates the backend for the stress test
-func NewStoreFront() *StoreFront {
+// NewStressTest creates the backend for the stress test
+func NewStressTest() *StressTest {
 
 	packageCh := make(chan Package, 0)
 	directiveCh := make(chan Directive, 0)
@@ -19,7 +19,7 @@ func NewStoreFront() *StoreFront {
 		Addr: fmt.Sprintf("http://%v/", "localhost:8086"),
 	})
 
-	s := &StoreFront{
+	s := &StressTest{
 		TestDB:    "_stressTest",
 		Precision: "s",
 		StartDate: "2016-01-02",
@@ -43,13 +43,13 @@ func NewStoreFront() *StoreFront {
 	return s
 }
 
-// NewTestStoreFront returns a StoreFront to be used for testing Statements
-func NewTestStoreFront() (*StoreFront, chan Package, chan Directive) {
+// NewTestStressTest returns a StressTest to be used for testing Statements
+func NewTestStressTest() (*StressTest, chan Package, chan Directive) {
 
 	packageCh := make(chan Package, 0)
 	directiveCh := make(chan Directive, 0)
 
-	s := &StoreFront{
+	s := &StressTest{
 		TestDB:    "_stressTest",
 		Precision: "s",
 		StartDate: "2016-01-02",
@@ -65,8 +65,8 @@ func NewTestStoreFront() (*StoreFront, chan Package, chan Directive) {
 	return s, packageCh, directiveCh
 }
 
-// The StoreFront is the Statement facing API that consumes Statement output and coordinates the test results
-type StoreFront struct {
+// The StressTest is the Statement facing API that consumes Statement output and coordinates the test results
+type StressTest struct {
 	TestID string
 	TestDB string
 
@@ -86,30 +86,30 @@ type StoreFront struct {
 }
 
 // SendPackage is the public facing API for to send Queries and Points
-func (sf *StoreFront) SendPackage(p Package) {
-	sf.packageChan <- p
+func (st *StressTest) SendPackage(p Package) {
+	st.packageChan <- p
 }
 
 // SendDirective is the public facing API to set state variables in the test
-func (sf *StoreFront) SendDirective(d Directive) {
-	sf.directiveChan <- d
+func (st *StressTest) SendDirective(d Directive) {
+	st.directiveChan <- d
 }
 
 // Starts a go routine that listens for Results
-func (sf *StoreFront) resultsListen() {
-	sf.createDatabase(sf.TestDB)
+func (st *StressTest) resultsListen() {
+	st.createDatabase(st.TestDB)
 	go func() {
-		bp := sf.newResultsPointBatch()
-		for resp := range sf.ResultsChan {
+		bp := st.newResultsPointBatch()
+		for resp := range st.ResultsChan {
 			switch resp.Point.Name() {
 			case "done":
-				sf.ResultsClient.Write(bp)
+				st.ResultsClient.Write(bp)
 				resp.Tracer.Done()
 			default:
-				// Add the StoreFront tags
-				pt := resp.AddTags(sf.tags())
+				// Add the StressTest tags
+				pt := resp.AddTags(st.tags())
 				// Add the point to the batch
-				bp = sf.batcher(pt, bp)
+				bp = st.batcher(pt, bp)
 				resp.Tracer.Done()
 			}
 		}
@@ -117,32 +117,32 @@ func (sf *StoreFront) resultsListen() {
 }
 
 // Creates a new batch of points for the results
-func (sf *StoreFront) newResultsPointBatch() influx.BatchPoints {
+func (st *StressTest) newResultsPointBatch() influx.BatchPoints {
 	bp, _ := influx.NewBatchPoints(influx.BatchPointsConfig{
-		Database:  sf.TestDB,
+		Database:  st.TestDB,
 		Precision: "ns",
 	})
 	return bp
 }
 
 // Batches incoming Result.Point and sends them if the batch reaches 5k in size
-func (sf *StoreFront) batcher(pt *influx.Point, bp influx.BatchPoints) influx.BatchPoints {
+func (st *StressTest) batcher(pt *influx.Point, bp influx.BatchPoints) influx.BatchPoints {
 	if len(bp.Points()) <= 5000 {
 		bp.AddPoint(pt)
 	} else {
-		err := sf.ResultsClient.Write(bp)
+		err := st.ResultsClient.Write(bp)
 		if err != nil {
 			log.Fatalf("Error writing performance stats\n  error: %v\n", err)
 		}
-		bp = sf.newResultsPointBatch()
+		bp = st.newResultsPointBatch()
 	}
 	return bp
 }
 
 // Convinence database creation function
-func (sf *StoreFront) createDatabase(db string) {
+func (st *StressTest) createDatabase(db string) {
 	query := fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %v", db)
-	res, err := sf.ResultsClient.Query(influx.Query{Command: query})
+	res, err := st.ResultsClient.Query(influx.Query{Command: query})
 	if err != nil {
 		log.Fatalf("error: no running influx server at localhost:8086")
 		if res.Error() != nil {
@@ -152,14 +152,14 @@ func (sf *StoreFront) createDatabase(db string) {
 }
 
 // GetStatementResults is a convinence function for fetching all results given a StatementID
-func (sf *StoreFront) GetStatementResults(sID, t string) (res []influx.Result) {
+func (st *StressTest) GetStatementResults(sID, t string) (res []influx.Result) {
 	qryStr := fmt.Sprintf(`SELECT * FROM "%v" WHERE statement_id = '%v'`, t, sID)
-	return sf.queryTestResults(qryStr)
+	return st.queryTestResults(qryStr)
 }
 
 //  Runs given qry on the test results database and returns the results or nil in case of error
-func (sf *StoreFront) queryTestResults(qry string) (res []influx.Result) {
-	response, err := sf.ResultsClient.Query(influx.Query{Command: qry, Database: sf.TestDB})
+func (st *StressTest) queryTestResults(qry string) (res []influx.Result) {
+	response, err := st.ResultsClient.Query(influx.Query{Command: qry, Database: st.TestDB})
 	if err == nil {
 		if response.Error() != nil {
 			log.Fatalf("Error sending results query\n  error: %v\n", response.Error())

@@ -37,7 +37,7 @@ func (c *commune) point(precision string) models.Point {
 	return p[0]
 }
 
-// SetCommune creates a new commune on the StoreFront
+// SetCommune creates a new commune on the StressTest
 func (st *StressTest) SetCommune(name string) chan<- string {
 	com := newCommune(10)
 	st.communes[name] = com

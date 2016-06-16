@@ -2,6 +2,7 @@ package statement
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/influxdata/influxdb/stress/v2/stressClient"
 )
@@ -20,6 +21,12 @@ func (i *GoStatement) SetID(s string) {
 
 // Run statisfies the Statement Interface
 func (i *GoStatement) Run(s *stressClient.StressTest) {
+	// TODO: remove
+	switch i.Statement.(type) {
+	case *QueryStatement:
+		time.Sleep(1 * time.Second)
+	}
+
 	s.Add(1)
 	go func() {
 		i.Statement.Run(s)

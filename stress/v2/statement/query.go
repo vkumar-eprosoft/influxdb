@@ -42,7 +42,6 @@ func (i *QueryStatement) SetID(s string) {
 // Run statisfies the Statement Interface
 func (i *QueryStatement) Run(s *stressClient.StressTest) {
 
-	// Set the tracer
 	i.Tracer = stressClient.NewTracer(i.tags())
 
 	vals := make(map[string]interface{})
@@ -71,7 +70,7 @@ func (i *QueryStatement) Run(s *stressClient.StressTest) {
 
 			// TODO: Currently the program lock up here if s.GetPoint
 			//       cannot return a value, which can happen.
-			// Seee insert.go
+			// See insert.go
 			s.Lock()
 			point = s.GetPoint(i.Name, s.Precision)
 			s.Unlock()

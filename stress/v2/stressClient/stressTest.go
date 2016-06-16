@@ -99,7 +99,7 @@ func (st *StressTest) SendDirective(d Directive) {
 func (st *StressTest) resultsListen() {
 	st.createDatabase(st.TestDB)
 	go func() {
-		bp := st.newResultsPointBatch()
+		bp := st.NewResultsPointBatch()
 		for resp := range st.ResultsChan {
 			switch resp.Point.Name() {
 			case "done":
@@ -116,8 +116,8 @@ func (st *StressTest) resultsListen() {
 	}()
 }
 
-// Creates a new batch of points for the results
-func (st *StressTest) newResultsPointBatch() influx.BatchPoints {
+// NewResultsPointBatch creates a new batch of points for the results
+func (st *StressTest) NewResultsPointBatch() influx.BatchPoints {
 	bp, _ := influx.NewBatchPoints(influx.BatchPointsConfig{
 		Database:  st.TestDB,
 		Precision: "ns",
@@ -134,7 +134,7 @@ func (st *StressTest) batcher(pt *influx.Point, bp influx.BatchPoints) influx.Ba
 		if err != nil {
 			log.Fatalf("Error writing performance stats\n  error: %v\n", err)
 		}
-		bp = st.newResultsPointBatch()
+		bp = st.NewResultsPointBatch()
 	}
 	return bp
 }

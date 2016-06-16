@@ -17,7 +17,7 @@ func TestGoSetID(t *testing.T) {
 
 func TestGoRun(t *testing.T) {
 	e := newTestGo()
-	s, _, _ := ponyExpress.NewTestStoreFront()
+	s, _, _ := stressClient.NewTestStressTest()
 	e.Run(s)
 	if e == nil {
 		t.Fail()
@@ -26,7 +26,7 @@ func TestGoRun(t *testing.T) {
 
 func TestGoReport(t *testing.T) {
 	e := newTestGo()
-	s, _, _ := ponyExpress.NewTestStoreFront()
+	s, _, _ := stressClient.NewTestStressTest()
 	report := e.Report(s)
 	if report != "Go " {
 		t.Errorf("Expected: %v\nGot: %v\n", "Go ", report)

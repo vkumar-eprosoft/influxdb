@@ -18,7 +18,7 @@ func TestInsertSetID(t *testing.T) {
 
 func TestInsertRun(t *testing.T) {
 	i := newTestInsert()
-	s, packageCh, _ := ponyExpress.NewTestStoreFront()
+	s, packageCh, _ := stressClient.NewTestStressTest()
 	// Listen to the other side of the directiveCh
 	go func() {
 		for pkg := range packageCh {

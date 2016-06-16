@@ -8,10 +8,10 @@ import (
 	influx "github.com/influxdata/influxdb/client/v2"
 )
 
-// reporting.go contains functions to emit tags and points from various parts of ponyExpress
+// reporting.go contains functions to emit tags and points from various parts of stressClient
 // These points are then written to the ("_%v", sf.TestName) database
 
-// These are the tags that ponyExpress adds to any response points
+// These are the tags that stressClient adds to any response points
 func (sc *stressClient) tags(statementID string) map[string]string {
 	tags := map[string]string{
 		"number_targets": fmtInt(len(sc.addresses)),

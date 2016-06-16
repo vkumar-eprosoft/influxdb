@@ -18,7 +18,7 @@ func TestWaitSetID(t *testing.T) {
 
 func TestWaitRun(t *testing.T) {
 	e := newTestWait()
-	s, _, _ := ponyExpress.NewTestStoreFront()
+	s, _, _ := stressClient.NewTestStressTest()
 	e.Run(s)
 	if e == nil {
 		t.Fail()
@@ -27,7 +27,7 @@ func TestWaitRun(t *testing.T) {
 
 func TestWaitReport(t *testing.T) {
 	e := newTestWait()
-	s, _, _ := ponyExpress.NewTestStoreFront()
+	s, _, _ := stressClient.NewTestStressTest()
 	rpt := e.Report(s)
 	if !strings.Contains(rpt, "WAIT") {
 		t.Fail()

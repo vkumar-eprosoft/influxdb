@@ -30,8 +30,8 @@ func TestNewStressClientTags(t *testing.T) {
 	}
 }
 
-func TestNewStorefrontTags(t *testing.T) {
-	sf, _, _ := NewTestStoreFront()
+func TestNewStressTestTags(t *testing.T) {
+	sf, _, _ := NewTestStressTest()
 	tags := sf.tags()
 	expected := sf.Precision
 	got := tags["precision"]
